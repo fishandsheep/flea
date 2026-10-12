@@ -303,7 +303,7 @@ fn item_of(path: &str) -> Result<Json, String> {
 }
 
 // The path as the pile spells it, and the caller's own spelling when it cannot be resolved at all.
-fn absolute_or(path: &str) -> String {
+pub(crate) fn absolute_or(path: &str) -> String {
     absolute(path).map(|p| p.to_string_lossy().to_string()).unwrap_or_else(|_| path.to_string())
 }
 

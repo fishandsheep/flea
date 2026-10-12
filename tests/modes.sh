@@ -230,6 +230,24 @@ check "the fallback arm passes the same UI root" "$(echo "$good" | grep '^ARGV '
 check "and the fallback arm is the one that changed renderer" "1" "$(echo "$broken" | grep -c '^RENDERER opengl$')"
 check "and it is the only arm that reported a downgrade" "0" "$(echo "$good" | grep -c 'Vulkan is unusable')"
 
+# Issue 290: the shell is handed its launch paths absolute, because the pane keeps a relative one as
+# given and the Quick Look's file:// URLs read its first component as a host. Launched from / so the
+# expected spelling needs no readlink against a symlinked test tree, and through $BIN_REAL because
+# $BIN is relative to the tree the suite cd'd from.
+out=$( (cd / && env FLEA_UI="$UI_REAL" WAYLAND_DISPLAY=flea-modes-test-display PATH="$D:/usr/bin:/bin" \
+  $BIN_REAL --gui . 2>&1 </dev/null) )
+check "a relative start reaches the shell absolute" "FLEA_PATH /" "$(echo "$out" | grep '^FLEA_PATH ')"
+out=$( (cd / && env FLEA_UI="$UI_REAL" WAYLAND_DISPLAY=flea-modes-test-display PATH="$D:/usr/bin:/bin" \
+  $BIN_REAL --gui . --select etc/hostname 2>&1 </dev/null) )
+check "and a relative reveal's directory does too" "FLEA_PATH /etc" "$(echo "$out" | grep '^FLEA_PATH ')"
+check "and a relative reveal's target is absolute" "FLEA_SELECT /etc/hostname" "$(echo "$out" | grep '^FLEA_SELECT ')"
+# A bare name's parent is the directory the launch runs in, so the reveal opens there, selected;
+# the empty parent that select_target used to hand back opened the default location instead.
+out=$( (cd / && env FLEA_UI="$UI_REAL" WAYLAND_DISPLAY=flea-modes-test-display PATH="$D:/usr/bin:/bin" \
+  $BIN_REAL --gui --select hostname 2>&1 </dev/null) )
+check "a bare-name reveal opens the launch's directory" "FLEA_PATH /" "$(echo "$out" | grep '^FLEA_PATH ')"
+check "and its target joins that directory" "FLEA_SELECT /hostname" "$(echo "$out" | grep '^FLEA_SELECT ')"
+
 
 # A launch with no FLEA_BIN in the environment is the ordinary one, and it must still name this binary.
 out=$(env -u FLEA_BIN WAYLAND_DISPLAY=flea-modes-test-display PATH="$D:/usr/bin:/bin" $BIN --gui 2>&1 </dev/null)
@@ -924,6 +942,11 @@ check "select: a missing target still opens its directory" "/etc /etc/does-not-e
 
 out=$($BIN --select "file:///home/gm/My%20Files/note.txt" --print-target 2>&1)
 check "select: a percent-encoded uri decodes" "/home/gm/My Files /home/gm/My Files/note.txt" "$out"
+
+# A bare name has no parent of its own, so the reveal resolves it against the launch's directory;
+# the target itself stays as named, and the launch construction is what absolutizes the pair.
+out=$( (cd / && $BIN_REAL --select hostname --print-target 2>&1) )
+check "select: a bare name resolves against the launch's directory" "/ hostname" "$out"
 
 [ "$fail" -eq 0 ] && echo "modes: all checks passed"
 exit $fail

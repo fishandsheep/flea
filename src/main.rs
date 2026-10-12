@@ -103,7 +103,8 @@ fn select_target(raw: &str) -> Option<(PathBuf, PathBuf)> {
     } else {
         PathBuf::from(raw)
     };
-    let parent = path.parent()?.to_path_buf();
+    // A bare name's parent is the directory the launch runs in; parent() answers "" for one.
+    let parent = path.parent().filter(|p| !p.as_os_str().is_empty()).map(|p| p.to_path_buf()).or_else(|| std::env::current_dir().ok())?;
     Some((parent, path))
 }
 
@@ -351,9 +352,13 @@ fn main() {
     }
 
     // A reveal opens the target's directory; a missing target still opens it, with nothing selected.
+    // Issue 290: a relative launch path stays relative on the pane, whose Quick Look file:// URLs
+    // read the first component as a host, so both launch paths join the cwd here once, lexically
+    // only, never touching the filesystem; a directory that does not exist still absolutizes, and
+    // the pane reports it on its own.
     let (open_path, select_path) = match select_raw.as_deref().and_then(select_target) {
-        Some((parent, target)) => (Some(parent.to_string_lossy().into_owned()), Some(target.to_string_lossy().into_owned())),
-        None => (start, None),
+        Some((parent, target)) => (Some(shelf::absolute_or(&parent.to_string_lossy())), Some(shelf::absolute_or(&target.to_string_lossy()))),
+        None => (start.map(|s| shelf::absolute_or(&s)), None),
     };
 
     // Explicit terminal mode never writes escape codes into a pipeline.
