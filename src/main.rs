@@ -108,8 +108,8 @@ fn select_target(raw: &str) -> Option<(PathBuf, PathBuf)> {
     Some((parent, path))
 }
 
-// flea --ui-state, the one path both front ends reach the state file through: no argument reads it,
-// one JSON object merges that patch through the lock. Either way the resulting document is printed.
+/// flea --ui-state, the one path both front ends reach the state file through: no argument reads it,
+/// one JSON object merges that patch through the lock. Either way the resulting document is printed.
 fn ui_state(args: &[String]) -> i32 {
     let store = match uistore::Store::user() {
         Ok(store) => store,

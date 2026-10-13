@@ -254,10 +254,13 @@ fn with_pinned(item: &Json, pinned: bool) -> Json {
     rebuilt(item, |name| name != "pinned", vec![("pinned".to_string(), Json::Bool(pinned))])
 }
 
+/// An entry with its path replaced, the one field that names where the pile holds it.
 fn with_path(item: &Json, path: &str) -> Json {
     rebuilt(item, |name| name != "path", vec![("path".to_string(), Json::Str(path.to_string()))])
 }
 
+/// One pile entry rewritten: keep names the fields it carries over and added the ones spliced in,
+/// because an entry is replaced whole rather than edited in place.
 fn rebuilt(item: &Json, keep: impl Fn(&str) -> bool, mut added: Vec<(String, Json)>) -> Json {
     let mut fields: Vec<(String, Json)> = match item {
         Json::Obj(fields) => fields.iter().filter(|(name, _)| keep(name)).cloned().collect(),
