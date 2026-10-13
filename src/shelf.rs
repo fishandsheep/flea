@@ -267,7 +267,7 @@ fn rebuilt(item: &Json, keep: impl Fn(&str) -> bool, mut added: Vec<(String, Jso
     Json::Obj(fields)
 }
 
-// std::path::absolute needs Rust 1.79 over the 1.77 floor; this joins cwd, drops CurDir, and keeps // and one trailing slash.
+/// std::path::absolute needs Rust 1.79 over the 1.77 floor; this joins cwd, drops CurDir, and keeps // and one trailing slash.
 pub(crate) fn absolute(path: &str) -> std::io::Result<PathBuf> {
     let joined = Path::new(path);
     if joined.as_os_str().is_empty() {

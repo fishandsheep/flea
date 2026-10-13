@@ -150,7 +150,7 @@ fn ui_state(args: &[String]) -> i32 {
     0
 }
 
-// Directive 38: the shelf ships off, so anything but a stored true is off.
+/// Directive 38: the shelf ships off, so anything but a stored true is off.
 fn shelf_enabled(state: &jsondoc::Json) -> bool {
     state.get("shelf").and_then(|s| s.get("enabled")).and_then(|v| v.as_bool()) == Some(true)
 }
