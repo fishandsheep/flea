@@ -291,8 +291,8 @@ pub(crate) fn absolute(path: &str) -> std::io::Result<PathBuf> {
     Ok(out)
 }
 
-// A pile entry: the path the shelf holds and whether the card draws it as a folder. The size is not
-// recorded, because the card asks for it per drawn row and a folder's answer goes stale on its own.
+/// A pile entry: the path the shelf holds and whether the card draws it as a folder. The size is not
+/// recorded, because the card asks for it per drawn row and a folder's answer goes stale on its own.
 fn item_of(path: &str) -> Result<Json, String> {
     let full = absolute(path).map_err(|e| format!("{} could not be read ({:?})", path, e.kind()))?;
     let meta = fs::symlink_metadata(&full).map_err(|e| format!("{} could not be read ({:?})", path, e.kind()))?;
@@ -302,7 +302,7 @@ fn item_of(path: &str) -> Result<Json, String> {
     ]))
 }
 
-// The path as the pile spells it, and the caller's own spelling when it cannot be resolved at all.
+/// The path as the pile spells it, and the caller's own spelling when it cannot be resolved at all.
 pub(crate) fn absolute_or(path: &str) -> String {
     absolute(path).map(|p| p.to_string_lossy().to_string()).unwrap_or_else(|_| path.to_string())
 }

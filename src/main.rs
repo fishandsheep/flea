@@ -96,7 +96,7 @@ fn usage(message: &str) -> ! {
     exit(2)
 }
 
-// A reveal names a file; the window opens on its parent with that entry selected.
+/// A reveal names a file; the window opens on its parent with that entry selected.
 fn select_target(raw: &str) -> Option<(PathBuf, PathBuf)> {
     let path = if let Some(rest) = raw.strip_prefix("file://") {
         PathBuf::from(paths::percent_decode(rest))
@@ -155,6 +155,7 @@ fn shelf_enabled(state: &jsondoc::Json) -> bool {
     state.get("shelf").and_then(|s| s.get("enabled")).and_then(|v| v.as_bool()) == Some(true)
 }
 
+/// Dispatches argv to one of Flea's modes and launches the chosen front end.
 fn main() {
     // args() panics on a non-UTF-8 argument and a Linux filename is any bytes, so refuse instead.
     let args: Vec<String> = match std::env::args_os().map(|a| a.into_string()).collect() {
@@ -352,10 +353,9 @@ fn main() {
     }
 
     // A reveal opens the target's directory; a missing target still opens it, with nothing selected.
-    // Issue 290: a relative launch path stays relative on the pane, whose Quick Look file:// URLs
-    // read the first component as a host, so both launch paths join the cwd here once, lexically
-    // only, never touching the filesystem; a directory that does not exist still absolutizes, and
-    // the pane reports it on its own.
+    // Issue 290: a relative launch path stays relative on the pane, whose Quick Look file:// URLs read
+    // the first component as a host, so both launch paths join the cwd here once, lexically only,
+    // never touching the filesystem; a directory that does not exist still absolutizes.
     let (open_path, select_path) = match select_raw.as_deref().and_then(select_target) {
         Some((parent, target)) => (Some(shelf::absolute_or(&parent.to_string_lossy())), Some(shelf::absolute_or(&target.to_string_lossy()))),
         None => (start.map(|s| shelf::absolute_or(&s)), None),
